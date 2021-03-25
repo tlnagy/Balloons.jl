@@ -2,5 +2,7 @@ using Balloons
 using Test
 
 @testset "Balloons.jl" begin
-    # Write your tests here.
+    @testset "Packbits" begin
+        include("packbits.jl")
+    end
 end

@@ -13,7 +13,7 @@ struct Packbits <: CompressionAlgorithm end
 
 inflate!(pb::Packbits, input, output) = inflate!(pb, reinterpret(UInt8, input), reinterpret(UInt8, output))
 
-function inflate!(::Packbits, input::Vector{UInt8}, output::Vector{UInt8})
+function inflate!(::Packbits, input::AbstractVector{UInt8}, output::AbstractVector{UInt8})
     ipos, opos = 1, 1
 
     while opos <= length(output)
