@@ -1,0 +1,3 @@
+var documenterSearchIndex = {"docs":
+[{"location":"","page":"Home","title":"Home","text":"CurrentModule = Balloons","category":"page"},{"location":"#Balloons","page":"Home","title":"Balloons","text":"","category":"section"},{"location":"","page":"Home","title":"Home","text":"Documentation for Balloons.","category":"page"},{"location":"","page":"Home","title":"Home","text":"","category":"page"},{"location":"","page":"Home","title":"Home","text":"Modules = [Balloons]","category":"page"},{"location":"#Balloons.Packbits","page":"Home","title":"Balloons.Packbits","text":"Packbits Compression\n\nA simple byte-oriented run-length encoding as defined by the TIFF Spec 6.0\n\n\n\n\n\n","category":"type"}]
+}
