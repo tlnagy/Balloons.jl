@@ -32,11 +32,21 @@ function inflate!(::Packbits, input::AbstractVector{UInt8}, output::AbstractVect
     end
 end
 
-struct LZW <: CompressionAlgorithm end
+"""
+    Lempel-Ziv-Welch Compression
 
-const LZW_CLEARCODE = UInt32(256)
-const LZW_ENDCODE = UInt32(257)
-const LZW_CODEWIDTH = 9
+A robust universal lossless compression algorithm. This implementation supports
+variable-width compression codes.
+"""
+struct LZW <: CompressionAlgorithm
+    initial_codewidth::Int
+    initial_dictsize::Int
+
+    clearcode::UInt32
+    endcode::UInt32
+end
+
+LZW() = LZW(9, 256, 256, 257)
 
 mask(t::Type{T}, p::Integer, l::Integer) where {T} = (typemax(T) << (sizeof(T)*8-l)) >> p
 
@@ -60,14 +70,14 @@ function stuff(v::UInt32, a::UInt8, loc::T) where {T <: Integer}
     v += (zero(UInt32) + a) << ((4-loc)*8)
 end
 
-function initdict!(dict)
+function initdict!(lzw::LZW, dict)
     empty!(dict)
 
-    for i in 0:255
+    for i in 0:(lzw.initial_dictsize - 1)
         dict[i] = UInt8[i]
     end
-    dict[LZW_CLEARCODE] = UInt8[0]
-    dict[LZW_ENDCODE] = UInt8[0]
+    dict[lzw.clearcode] = UInt8[0]
+    dict[lzw.endcode] = UInt8[0]
 end
 
 function nextchar(input, ρ, bitwidth)
@@ -77,23 +87,23 @@ function nextchar(input, ρ, bitwidth)
     for j in 1:min(3, length(input)-i)
         v = stuff(v, input[i+j], j+1)
     end
-    
+
     extract(v, mod(ρ, 8), bitwidth)
 end
 
-function inflate(::LZW, input::Vector{UInt8})
-    bitwidth = 9
+function inflate(lzw::LZW, input::Vector{UInt8})
+    bitwidth = lzw.initial_codewidth
 
     ρ = 0 # position in bits
 
     output = IOBuffer()
 
     dict = Dict{UInt32, Array{UInt8}}()
-    k = LZW_CLEARCODE
+    k = lzw.clearcode
 
     entry = UInt8[]
     prev_entry = UInt8[]
-    
+
     while true
         # increase bitwidth if we're out of space
         if length(dict) >= 2^bitwidth - 1
@@ -101,17 +111,24 @@ function inflate(::LZW, input::Vector{UInt8})
         end
 
         k = nextchar(input, ρ, bitwidth)
-        if k == LZW_ENDCODE
+        if k == lzw.endcode
             break
         end
-        
-        if k == LZW_CLEARCODE
-            initdict!(dict)
-            sz = length(dict)
 
+        # reset dictionary and variables on detecting a clear code
+        if k == lzw.clearcode
             ρ += bitwidth
+
+            # reset everything back to baseline
+            initdict!(lzw, dict)
+            sz = length(dict)
+            entry = UInt8[]
+            prev_entry = UInt8[]
+            bitwidth = lzw.initial_codewidth
+
+            # get next character
             k = nextchar(input, ρ, bitwidth)
-            (k == LZW_ENDCODE) && break
+            (k == lzw.endcode) && break
             entry = dict[k]
             write(output, entry)
             prev_entry = entry
@@ -123,7 +140,9 @@ function inflate(::LZW, input::Vector{UInt8})
             end
 
             write(output, entry)
-            dict[length(dict)] = vcat(prev_entry, first(entry))
+            if length(prev_entry) != 0
+                dict[length(dict)] = vcat(prev_entry, first(entry))
+            end
             prev_entry = entry
         end
 
