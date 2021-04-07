@@ -1,6 +1,6 @@
 module Balloons
 
-export deflate, inflate!
+export deflate, inflate!, inflate
 
 abstract type CompressionAlgorithm end
 

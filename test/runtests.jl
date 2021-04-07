@@ -1,8 +1,10 @@
 using Balloons
 using Test
 
-@testset "Balloons.jl" begin
-    @testset "Packbits" begin
-        include("packbits.jl")
-    end
+@testset "Packbits" begin
+    include("packbits.jl")
+end
+
+@testset "LZW" begin
+    include("lzw.jl")
 end
