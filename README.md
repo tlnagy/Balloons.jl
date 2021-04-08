@@ -13,6 +13,7 @@ Inflate and deflate your data with the following common compression algorithms
 implemented in Julia:
 
 - Packbits
+- variable-width LZW
 
 ### Usage
 

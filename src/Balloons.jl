@@ -76,8 +76,8 @@ function initdict!(lzw::LZW, dict)
     for i in 0:(lzw.initial_dictsize - 1)
         dict[i] = UInt8[i]
     end
-    dict[lzw.clearcode] = UInt8[0]
-    dict[lzw.endcode] = UInt8[0]
+    dict[lzw.clearcode] = [0x00]
+    dict[lzw.endcode] = [0x00]
 end
 
 function nextchar(input, ρ, bitwidth)
@@ -98,7 +98,7 @@ function inflate(lzw::LZW, input::Vector{UInt8})
 
     output = IOBuffer()
 
-    dict = Dict{UInt32, Array{UInt8}}()
+    dict = Dict{UInt32, Vector{UInt8}}()
     k = lzw.clearcode
 
     entry = UInt8[]
@@ -122,8 +122,6 @@ function inflate(lzw::LZW, input::Vector{UInt8})
             # reset everything back to baseline
             initdict!(lzw, dict)
             sz = length(dict)
-            entry = UInt8[]
-            prev_entry = UInt8[]
             bitwidth = lzw.initial_codewidth
 
             # get next character
